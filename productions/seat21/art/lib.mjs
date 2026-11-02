@@ -169,7 +169,7 @@ export const DEFAULT_POSE = {
 // Wardrobe (fixed for the whole film): HIM plain navy shirt + thin black glasses,
 // backpack = two strap lines in front view, the bag itself only in side views or in hand.
 // HER plain yellow kurta under a golden scarf, short ponytail with rust tie.
-export const WARDROBE = {shirt: '#3f5680', bag: '#253149', bagLight: '#3a4a6b', kurta: '#f1d47e', scarf: '#e0a321', cap: '#8a5d3b', capDark: '#6a4529'};
+export const WARDROBE = {shirt: '#3f5680', bag: '#253149', bagLight: '#3a4a6b', kurta: '#f1d47e', scarf: '#e0a321', cap: '#8a5d3b', capDark: '#6a4529', hair: '#2e2420'};
 export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
   const p = {...DEFAULT_POSE, ...pose}, R = RIG, lw = opts.lw ?? R.lw, Wd = WARDROBE;
   const hip = [hx, hy];
@@ -199,10 +199,10 @@ export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
     ctx.moveTo(ax - oy * 5, ay + ox * 5);
     ctx.bezierCurveTo(ax + s * 16, ay - 4, ax + s * 22, ay + 14, ax + s * 13, ay + 24);
     ctx.bezierCurveTo(ax + s * 10, ay + 14, ax + s * 4, ay + 8, ax + oy * 5, ay - ox * 5);
-    ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.closePath(); ctx.fillStyle = WARDROBE.hair; ctx.fill(); ctx.restore();
     ellipse(ctx, r, ax + s * 2, ay + 1, 3.6, 4.6, {fill: C.rust, lw: 1.3, grain: 0});
   }
-  if (p.feet) { ctx.save(); ctx.globalAlpha = 0.16; ctx.fillStyle = '#1d2a28'; ctx.beginPath(); ctx.ellipse(hip[0], hip[1] + 2, 30, 7, 0, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.ellipse(hip[0] + 4, hip[1] - 40, 20, 26, 0, 0, 6.3); ctx.fill(); ctx.restore(); }
+  if (p.feet) { ctx.save(); ctx.globalAlpha = 0.16; ctx.fillStyle = '#1d2a28'; ctx.beginPath(); ctx.ellipse(hip[0], hip[1] + 4, 30, 8, 0, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.ellipse(hip[0] + 4, hip[1] - 32, 21, 24, 0, 0, 6.3); ctx.fill(); ctx.restore(); }
   for (const L of [legL, legR]) line(ctx, r, L, ink);
   if (p.feet) for (const [L, d] of [[legL, -1], [legR, 1]]) line(ctx, r, [L[2], [L[2][0] + d * 8, L[2][1] + 0.5]], {...ink, amp: 0}); // small feet planted on the floor
   line(ctx, r, [hip, neck], ink);
@@ -237,6 +237,20 @@ export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
   }
   // head
   ellipse(ctx, r, head[0], head[1], R.headR, R.headR, {fill: C.white, lw, amp: 0.5, grain: 0});
+  if (who === 'her') { // solid dark hair over the top of the head, side-swept fringe, joined to the ponytail
+    ctx.save(); ctx.translate(head[0], head[1]); ctx.rotate(p.lean + p.head);
+    const hr = R.headR + 1.2, pts = [];
+    if (side) {
+      const sd = side; // from the forehead over the crown to the nape, then back along the hairline
+      for (let i = 0; i <= 18; i++) { const ang = 0.9 - 2.75 * i / 18; pts.push([sd * Math.sin(ang) * hr, -Math.cos(ang) * hr]); }
+      pts.push([sd * -12, 5], [sd * -5, -3], [sd * 4, -9.5], [sd * 12, -8.5], [sd * 16.5, -11]);
+    } else {
+      for (let i = 0; i <= 20; i++) { const a = Math.PI * (178 / 180) + Math.PI * (186 / 180) * i / 20; pts.push([Math.cos(a) * hr, Math.sin(a) * hr]); }
+      pts.push([16, -7], [9, -12], [1, -11.5], [-7, -10], [-13.5, -8], [-18.5, -3]);
+    }
+    shape(ctx, r, pts, {fill: WARDROBE.hair, stroke: C.ink, lw: 1.8, grain: 0.06, amp: 0.4});
+    ctx.restore();
+  }
   if (who === 'him') { // small brown flat cap, sitting just above the glasses, in every view
     ctx.save(); ctx.translate(head[0], head[1]); ctx.rotate(p.lean + p.head);
     const hr = R.headR, crown = [];
@@ -297,7 +311,7 @@ export function ticket(ctx, r, x, y, s = 1, label = '21') {
   if (label) handText(ctx, label, x + 22 * s, y + 18 * s, {size: 22 * s, color: C.rust, align: 'center'});
 }
 // Lap bag for HIM when seated (front view): rests on his thighs, drawn under his hands.
-export const lapBag = (ctx, r) => (_c, {hip}) => backpack(ctx, r, hip[0] - 18.5, hip[1] + 4, 0.8);
+export const lapBag = (ctx, r) => (_c, {hip}) => backpack(ctx, r, hip[0] - 18.5, hip[1] + 14, 0.8);
 // Seat plaque, hanging on two short cords; (x, y) = top centre of the cords.
 export function plaque(ctx, r, x, y, n) {
   line(ctx, r, [[x - 14, y], [x - 14, y + 12]], {lw: 1.6}); line(ctx, r, [[x + 14, y], [x + 14, y + 12]], {lw: 1.6});
