@@ -101,8 +101,8 @@ function platform() {
 
 // ---------- 2. local train interior (main set) ----------
 export const LOCAL_WINDOWS = [rrPts(130, 104, 470, 232, 26), rrPts(680, 104, 470, 232, 26)];
-function localInterior() {
-  const {cv, ctx} = canvas(W, H), r = rng(202);
+function localInterior(scale = S, file = 'bg2-local-interior.png') {
+  const {cv, ctx} = canvas(W, H, scale), r = rng(202);
   paper(ctx, r, W, H, C.cream);
   rect(ctx, r, -10, -10, W + 20, 92, {fill: '#e6dcc2', lw: 2, grain: 0.08});
   // ad strip
@@ -136,7 +136,7 @@ function localInterior() {
   shape(ctx, r, [[-10, 594], [W + 10, 594], [W + 10, H + 10], [-10, H + 10]], {fill: C.sand, lw: 2.4, grain: 0.14});
   for (let x = -40; x < W; x += 90) line(ctx, r, [[x, 600], [x - 30, H]], {lw: 1, color: C.inkSoft, alpha: 0.35});
   paperGrain(ctx, r, W, H, 0.05);
-  save(cv, OUT + 'bg2-local-interior.png');
+  save(cv, OUT + file);
 }
 
 // ---------- 4. window views: far (opaque) + near (transparent) ----------
@@ -335,5 +335,5 @@ function longInterior() {
   save(cv, OUT + 'bg7-long-interior.png');
 }
 
-platform(); localInterior(); views(); fogCloseup(); room(); terminal(); longInterior();
+platform(); localInterior(); localInterior(3, 'bg2-local-interior@3x.png'); views(); fogCloseup(); room(); terminal(); longInterior();
 console.log('backgrounds ok');
