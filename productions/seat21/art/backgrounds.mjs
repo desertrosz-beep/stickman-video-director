@@ -121,13 +121,15 @@ function localInterior() {
   // window sills
   rect(ctx, r, 112, 336, 506, 12, {fill: '#c9c1aa', lw: 1.8, grain: 0.05}); rect(ctx, r, 662, 336, 506, 12, {fill: '#c9c1aa', lw: 1.8, grain: 0.05});
   // bench backrest + seat (long commuter bench; seats 20 and 21 marked)
-  rect(ctx, r, 60, 362, 1160, 138, {fill: C.teal, lw: 2.6, grain: 0.14});
-  for (const x of [320, 480, 640, 800, 960]) line(ctx, r, [[x, 366], [x, 496]], {lw: 1.6, color: C.tealDark});
-  rect(ctx, r, 48, 500, 1184, 30, {fill: '#82a8a2', lw: 2.6, grain: 0.12});
-  rect(ctx, r, 58, 530, 1164, 64, {fill: C.tealDark, lw: 2.4, grain: 0.16});
-  for (let x = 80; x < 1220; x += 58) line(ctx, r, [[x, 538], [x + 10, 588]], {lw: 1, color: C.ink, alpha: 0.25});
-  // seat number plates, hung from the window frame directly above seats 20 and 21
-  for (const [x, n] of [[560, '20'], [720, '21']]) { line(ctx, r, [[x - 14, 98], [x - 14, 112]], {lw: 1.6}); line(ctx, r, [[x + 14, 98], [x + 14, 112]], {lw: 1.6}); rect(ctx, r, x - 28, 110, 56, 32, {fill: C.cream, lw: 2, grain: 0.04}); sign(ctx, n, x, 127, 19, n === '21' ? C.rustDark : C.ink); }
+  rect(ctx, r, 60, 424, 1160, 76, {fill: C.teal, lw: 2.6, grain: 0.14});
+  for (const x of [320, 480, 640, 800, 960]) line(ctx, r, [[x, 428], [x, 496]], {lw: 1.6, color: C.tealDark});
+  // cushion top seen from slightly above (deep enough for thighs to rest on), then front face
+  shape(ctx, r, [[60, 500], [1220, 500], [1236, 546], [44, 546]], {fill: '#86aba5', lw: 2.6, grain: 0.12});
+  line(ctx, r, [[64, 506], [1216, 506]], {lw: 1.4, color: C.tealDark, alpha: 0.6});
+  for (const x of [320, 480, 640, 800, 960]) line(ctx, r, [[x, 502], [x + (x - 640) * 0.03, 544]], {lw: 1.2, color: C.tealDark, alpha: 0.5});
+  rect(ctx, r, 54, 546, 1172, 48, {fill: C.tealDark, lw: 2.4, grain: 0.16});
+  for (let x = 80; x < 1220; x += 58) line(ctx, r, [[x, 552], [x + 8, 588]], {lw: 1, color: C.ink, alpha: 0.25});
+  // seat plaques 20/21 are a separate layer (props/plaque-*.png) placed above HIM and HER
   // stanchions
   for (const x of [34, 1246]) rect(ctx, r, x - 7, 78, 14, 560, {fill: C.mustard, lw: 2, grain: 0.08});
   // floor

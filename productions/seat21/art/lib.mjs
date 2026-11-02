@@ -169,7 +169,7 @@ export const DEFAULT_POSE = {
 // Wardrobe (fixed for the whole film): HIM plain navy shirt + thin black glasses,
 // backpack = two strap lines in front view, the bag itself only in side views or in hand.
 // HER plain yellow kurta under a golden scarf, short ponytail with rust tie.
-export const WARDROBE = {shirt: '#3f5680', bag: '#253149', bagLight: '#3a4a6b', kurta: '#f1d47e', scarf: '#e0a321'};
+export const WARDROBE = {shirt: '#3f5680', bag: '#253149', bagLight: '#3a4a6b', kurta: '#f1d47e', scarf: '#e0a321', cap: '#8a5d3b', capDark: '#6a4529'};
 export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
   const p = {...DEFAULT_POSE, ...pose}, R = RIG, lw = opts.lw ?? R.lw, Wd = WARDROBE;
   const hip = [hx, hy];
@@ -202,7 +202,9 @@ export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
     ctx.closePath(); ctx.fill(); ctx.restore();
     ellipse(ctx, r, ax + s * 2, ay + 1, 3.6, 4.6, {fill: C.rust, lw: 1.3, grain: 0});
   }
+  if (p.feet) { ctx.save(); ctx.globalAlpha = 0.16; ctx.fillStyle = '#1d2a28'; ctx.beginPath(); ctx.ellipse(hip[0], hip[1] + 2, 30, 7, 0, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.ellipse(hip[0] + 4, hip[1] - 40, 20, 26, 0, 0, 6.3); ctx.fill(); ctx.restore(); }
   for (const L of [legL, legR]) line(ctx, r, L, ink);
+  if (p.feet) for (const [L, d] of [[legL, -1], [legR, 1]]) line(ctx, r, [L[2], [L[2][0] + d * 8, L[2][1] + 0.5]], {...ink, amp: 0}); // small feet planted on the floor
   line(ctx, r, [hip, neck], ink);
   const half = side ? 9 : 13;
   if (who === 'him') { // plain navy shirt, tucked at the hip
@@ -219,6 +221,7 @@ export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
   if (wearBag && !side) { // front view: only two strap lines over the shoulders
     for (const s of [-1, 1]) { const pts = [[neck[0] + s * 7, neck[1] + 1], [neck[0] + s * 11, neck[1] + 12], [neck[0] + s * 11, neck[1] + 42]]; line(ctx, r, pts, {lw: 5.6, color: C.ink, amp: 0.2}); line(ctx, r, pts, {lw: 3.4, color: Wd.bag, amp: 0.2}); }
   }
+  if (opts.beforeArms) opts.beforeArms(ctx, {hip, neck});
   const arms = opts.hideArms === 'both' ? [] : opts.hideArms === 'L' ? [armR] : opts.hideArms === 'R' ? [armL] : [armL, armR];
   for (const A of arms) {
     line(ctx, r, A, ink);
@@ -234,6 +237,21 @@ export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
   }
   // head
   ellipse(ctx, r, head[0], head[1], R.headR, R.headR, {fill: C.white, lw, amp: 0.5, grain: 0});
+  if (who === 'him') { // small brown flat cap, sitting just above the glasses, in every view
+    ctx.save(); ctx.translate(head[0], head[1]); ctx.rotate(p.lean + p.head);
+    const hr = R.headR, crown = [];
+    if (side) {
+      for (let i = 0; i <= 16; i++) { const a = Math.PI + Math.PI * i / 16; crown.push([Math.cos(a) * (hr + 1.5) - side * 1, Math.sin(a) * (hr * 0.72) - 8]); }
+      crown.push([side * (hr + 1), -7], [-side * (hr + 1), -7]);
+      shape(ctx, r, crown, {fill: WARDROBE.cap, lw: 2, grain: 0.12, amp: 0.5});
+      shape(ctx, r, [[side * 6, -9], [side * (hr + 11), -7.5], [side * (hr + 9), -4], [side * 6, -5]], {fill: WARDROBE.capDark, lw: 1.8, grain: 0.06, amp: 0.3});
+    } else {
+      for (let i = 0; i <= 16; i++) { const a = Math.PI + Math.PI * i / 16; crown.push([Math.cos(a) * (hr + 2), Math.sin(a) * (hr * 0.74) - 8]); }
+      shape(ctx, r, crown, {fill: WARDROBE.cap, lw: 2, grain: 0.12, amp: 0.5});
+      shape(ctx, r, [[-15, -9], [15, -9], [12, -5], [-12, -5]], {fill: WARDROBE.capDark, lw: 1.8, grain: 0.06, amp: 0.3});
+    }
+    ctx.restore();
+  }
   const ex = side * 7 + p.gaze[0], ey = -2 + p.gaze[1];
   const eyePts = side ? [[head[0] + ex - 1, head[1] + ey], [head[0] + ex + side * 9, head[1] + ey]] : [[head[0] - 7.5 + ex, head[1] + ey], [head[0] + 7.5 + ex, head[1] + ey]];
   ctx.fillStyle = C.ink;
@@ -277,6 +295,14 @@ export function ticket(ctx, r, x, y, s = 1, label = '21') {
   rect(ctx, r, x, y, 62 * s, 34 * s, {fill: C.cream, lw: 1.8, grain: 0.06});
   line(ctx, r, [[x + 44 * s, y + 3 * s], [x + 44 * s, y + 31 * s]], {lw: 1.2, color: C.inkSoft, amp: 0.2});
   if (label) handText(ctx, label, x + 22 * s, y + 18 * s, {size: 22 * s, color: C.rust, align: 'center'});
+}
+// Lap bag for HIM when seated (front view): rests on his thighs, drawn under his hands.
+export const lapBag = (ctx, r) => (_c, {hip}) => backpack(ctx, r, hip[0] - 18.5, hip[1] + 4, 0.8);
+// Seat plaque, hanging on two short cords; (x, y) = top centre of the cords.
+export function plaque(ctx, r, x, y, n) {
+  line(ctx, r, [[x - 14, y], [x - 14, y + 12]], {lw: 1.6}); line(ctx, r, [[x + 14, y], [x + 14, y + 12]], {lw: 1.6});
+  rect(ctx, r, x - 28, y + 10, 56, 32, {fill: C.cream, lw: 2, grain: 0.04});
+  ctx.save(); ctx.font = '600 19px Sign'; ctx.fillStyle = n === '21' ? C.rustDark : C.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(n, x, y + 27); ctx.restore();
 }
 export function letter(ctx, r, x, y, s = 1, angle = 0) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
