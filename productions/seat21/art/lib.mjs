@@ -163,36 +163,36 @@ const dir = (a, l) => [Math.sin(a) * l, Math.cos(a) * l];
 export const RIG = {headR: 21, torso: 64, upper: 31, fore: 29, thigh: 37, shin: 36, lw: 3.6};
 export const DEFAULT_POSE = {
   facing: 'front', lean: 0, head: 0, gaze: [0, 0], mouth: 'line', eyes: 'dot', blush: false,
-  armL: [-0.25, -0.12], armR: [0.25, 0.12], legL: [-0.12, -0.05], legR: [0.12, 0.05],
+  armL: [-0.32, -0.12], armR: [0.32, 0.12], legL: [-0.12, -0.05], legR: [0.12, 0.05],
 };
 // Draw a figure with hip at (hx, hy). who: 'him' | 'her'. Returns joint map.
+// Wardrobe (fixed for the whole film): HIM plain navy shirt + thin black glasses,
+// backpack = two strap lines in front view, the bag itself only in side views or in hand.
+// HER plain yellow kurta under a golden scarf, short ponytail with rust tie.
+export const WARDROBE = {shirt: '#3f5680', bag: '#253149', bagLight: '#3a4a6b', kurta: '#f1d47e', scarf: '#e0a321'};
 export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
-  const p = {...DEFAULT_POSE, ...pose}, R = RIG, lw = opts.lw ?? R.lw;
+  const p = {...DEFAULT_POSE, ...pose}, R = RIG, lw = opts.lw ?? R.lw, Wd = WARDROBE;
   const hip = [hx, hy];
   const neck = [hx + Math.sin(p.lean) * R.torso, hy - Math.cos(p.lean) * R.torso];
   const shoulder = [neck[0] + Math.sin(p.lean) * -6, neck[1] + 7];
   const head = [neck[0] + Math.sin(p.lean + p.head) * (R.headR + 2), neck[1] - Math.cos(p.lean + p.head) * (R.headR + 2)];
   const limb = (o, [a, b], l1, l2) => { const j = [o[0] + dir(a, l1)[0], o[1] + dir(a, l1)[1]]; const e = [j[0] + dir(b, l2)[0], j[1] + dir(b, l2)[1]]; return [o, j, e]; };
-  const armL = limb(shoulder, p.armL, R.upper, R.fore), armR = limb(shoulder, p.armR, R.upper, R.fore);
-  const legL = limb(hip, p.legL, p.thighL ?? R.thigh, R.shin), legR = limb(hip, p.legR, p.thighR ?? R.thigh, R.shin);
+  const sideView = p.facing === 'right' || p.facing === 'left', sw = sideView ? 0 : 10;
+  const armL = limb([shoulder[0] - sw, shoulder[1]], p.armL, R.upper, R.fore), armR = limb([shoulder[0] + sw, shoulder[1]], p.armR, R.upper, R.fore);
+  const legL = limb(hip, p.legL, p.thighL ?? R.thigh, p.shin ?? R.shin), legR = limb(hip, p.legR, p.thighR ?? R.thigh, p.shin ?? R.shin);
   const side = p.facing === 'right' ? 1 : p.facing === 'left' ? -1 : 0;
   const ink = {lw, color: C.ink, amp: 0.45, step: 8};
-  // things behind the body
-  if (who === 'him' && opts.backpack !== false) {
-    if (side) { // bag on the back
-      const bx = neck[0] - side * 10, by = neck[1] + 6;
-      const pts = side > 0 ? [[bx - 24, by], [bx + 2, by - 2], [bx + 4, by + 44], [bx - 26, by + 46]] : [[bx - 2, by - 2], [bx + 24, by], [bx + 26, by + 46], [bx - 4, by + 44]];
-      shape(ctx, r, pts, {fill: C.navy, lw: 2.4, grain: 0.12});
-      line(ctx, r, side > 0 ? [[bx - 20, by + 18], [bx - 2, by + 18]] : [[bx + 2, by + 18], [bx + 20, by + 18]], {lw: 1.6, color: '#1e2a40', amp: 0.3});
-    } else if (opts.backpackFront !== true) { // slung over the right shoulder
-      const bx = neck[0] + 20, by = neck[1] + 34;
-      shape(ctx, r, [[bx, by + 4], [bx + 13, by - 2], [bx + 27, by + 4], [bx + 29, by + 48], [bx - 1, by + 48]], {fill: C.navy, lw: 2.4, grain: 0.12});
-      rect(ctx, r, bx + 4, by + 26, 21, 13, {fill: C.navyLight, lw: 1.6, grain: 0.06});
-    }
+  const wearBag = who === 'him' && opts.backpack !== false;
+  // bag on the back (side views only)
+  if (wearBag && side) {
+    const bx = neck[0] - side * 12, by = neck[1] + 6;
+    const pts = side > 0 ? [[bx - 24, by], [bx + 2, by - 2], [bx + 4, by + 46], [bx - 26, by + 48]] : [[bx - 2, by - 2], [bx + 24, by], [bx + 26, by + 48], [bx - 4, by + 46]];
+    shape(ctx, r, pts, {fill: Wd.bag, lw: 2.4, grain: 0.12});
+    line(ctx, r, side > 0 ? [[bx - 20, by + 20], [bx - 2, by + 20]] : [[bx + 2, by + 20], [bx + 20, by + 20]], {lw: 1.6, color: Wd.bagLight, amp: 0.3});
   }
   if (who === 'her') { // short ponytail: rounded tuft at the upper back of the head
     const s = side ? -side : (opts.tailSide ?? 1);
-    const ang = side ? -side * 0.95 : s * 0.8; // from vertical
+    const ang = side ? -side * 0.95 : s * 0.8;
     const ax = head[0] + Math.sin(ang) * R.headR * 0.92, ay = head[1] - Math.cos(ang) * R.headR * 0.92;
     const ox = Math.sin(ang), oy = -Math.cos(ang);
     ctx.save(); ctx.fillStyle = C.ink; ctx.beginPath();
@@ -202,22 +202,35 @@ export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
     ctx.closePath(); ctx.fill(); ctx.restore();
     ellipse(ctx, r, ax + s * 2, ay + 1, 3.6, 4.6, {fill: C.rust, lw: 1.3, grain: 0});
   }
-  // legs and torso
   for (const L of [legL, legR]) line(ctx, r, L, ink);
   line(ctx, r, [hip, neck], ink);
-  if (who === 'him' && opts.backpack !== false && !side && opts.backpackFront !== true) { // strap over shoulder
-    line(ctx, r, [[neck[0] + 3, neck[1] + 3], [neck[0] + 14, neck[1] + 10], [neck[0] + 26, neck[1] + 34]], {lw: 3.4, color: C.navy, amp: 0.3});
+  const half = side ? 9 : 13;
+  if (who === 'him') { // plain navy shirt, tucked at the hip
+    shape(ctx, r, [[neck[0] - half, neck[1] + 4], [neck[0] + half, neck[1] + 4], [hip[0] + half, hip[1] + 1], [hip[0] - half, hip[1] + 1]], {fill: Wd.shirt, lw: 2.2, grain: 0.1});
+    if (!side) line(ctx, r, [[neck[0] - 5, neck[1] + 4], [neck[0], neck[1] + 11], [neck[0] + 5, neck[1] + 4]], {lw: 1.6, color: C.ink, amp: 0});
   }
-  if (who === 'her') { // yellow scarf: wrap + tail
-    shape(ctx, r, [[neck[0] - 14, neck[1] - 4], [neck[0] + 14, neck[1] - 4], [neck[0] + 13, neck[1] + 6], [neck[0] - 13, neck[1] + 6]], {fill: C.scarf, lw: 1.8, grain: 0.1});
+  if (who === 'her') { // plain yellow kurta, hem between hip and knee
+    const kneeY = (legL[1][1] + legR[1][1]) / 2, hemY = Math.max(hip[1] + 8, Math.min(kneeY - 4, hip[1] + 28));
+    const spread = Math.max(side ? 14 : 19, Math.abs(legR[1][0] - legL[1][0]) / 2 + 6);
+    const hx2 = (legL[1][0] + legR[1][0]) / 2 * 0.5 + hip[0] * 0.5;
+    shape(ctx, r, [[neck[0] - half, neck[1] + 3], [neck[0] + half, neck[1] + 3], [hip[0] + half + 2, hip[1] - 6], [hx2 + spread, hemY], [hx2 - spread, hemY], [hip[0] - half - 2, hip[1] - 6]], {fill: Wd.kurta, lw: 2.2, grain: 0.1});
+    if (!side) line(ctx, r, [[neck[0], neck[1] + 8], [neck[0], neck[1] + 22]], {lw: 1.4, color: C.ink, amp: 0, alpha: 0.7});
+  }
+  if (wearBag && !side) { // front view: only two strap lines over the shoulders
+    for (const s of [-1, 1]) { const pts = [[neck[0] + s * 7, neck[1] + 1], [neck[0] + s * 11, neck[1] + 12], [neck[0] + s * 11, neck[1] + 42]]; line(ctx, r, pts, {lw: 5.6, color: C.ink, amp: 0.2}); line(ctx, r, pts, {lw: 3.4, color: Wd.bag, amp: 0.2}); }
+  }
+  const arms = opts.hideArms === 'both' ? [] : opts.hideArms === 'L' ? [armR] : opts.hideArms === 'R' ? [armL] : [armL, armR];
+  for (const A of arms) {
+    line(ctx, r, A, ink);
+    const sl = who === 'him' ? 0.5 : 0.85, e = [A[0][0] + (A[1][0] - A[0][0]) * sl, A[0][1] + (A[1][1] - A[0][1]) * sl];
+    const color = who === 'him' ? Wd.shirt : Wd.kurta;
+    line(ctx, r, [A[0], e], {lw: 10, color: C.ink, amp: 0}); line(ctx, r, [A[0], e], {lw: 7, color, amp: 0});
+  }
+  if (who === 'her') { // golden scarf over the kurta: wrap + tail
+    shape(ctx, r, [[neck[0] - 14, neck[1] - 4], [neck[0] + 14, neck[1] - 4], [neck[0] + 13, neck[1] + 6], [neck[0] - 13, neck[1] + 6]], {fill: Wd.scarf, lw: 1.8, grain: 0.1});
     const t = side ? -side : (opts.scarfSide ?? -1);
-    const sx = neck[0] + (side ? side * 6 : t * 7);
-    const wind = opts.scarfWind ?? 0;
-    shape(ctx, r, [[sx - 4, neck[1] + 4], [sx + 5, neck[1] + 4], [sx + 7 + t * wind * 16, neck[1] + 28 - wind * 10], [sx - 2 + t * wind * 18, neck[1] + 30 - wind * 10]], {fill: C.scarf, lw: 1.8, grain: 0.1});
-  }
-  if (opts.hideArms !== 'both') {
-    if (opts.hideArms !== 'L') line(ctx, r, armL, ink);
-    if (opts.hideArms !== 'R') line(ctx, r, armR, ink);
+    const sx = neck[0] + (side ? side * 6 : t * 7), wind = opts.scarfWind ?? 0;
+    shape(ctx, r, [[sx - 4, neck[1] + 4], [sx + 5, neck[1] + 4], [sx + 7 + t * wind * 16, neck[1] + 28 - wind * 10], [sx - 2 + t * wind * 18, neck[1] + 30 - wind * 10]], {fill: Wd.scarf, lw: 1.8, grain: 0.1});
   }
   // head
   ellipse(ctx, r, head[0], head[1], R.headR, R.headR, {fill: C.white, lw, amp: 0.5, grain: 0});
@@ -227,10 +240,23 @@ export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
   for (const [x, y] of eyePts) {
     if (p.eyes === 'closed') line(ctx, r, [[x - 3.2, y + 0.5], [x, y - 2], [x + 3.2, y + 0.5]], {lw: 1.8, amp: 0});
     else if (p.eyes === 'down') line(ctx, r, [[x - 3, y], [x + 3, y]], {lw: 1.8, amp: 0});
-    else { ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill(); }
+    else { ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(x, y, 2.4, 0, Math.PI * 2); ctx.fill(); }
+  }
+  if (who === 'him') { // thin black glasses
+    ctx.save(); ctx.strokeStyle = '#1c1b18'; ctx.lineWidth = 1.4;
+    const gy = head[1] - 2 + p.gaze[1] * 0.5, gx = head[0] + side * 7 + p.gaze[0] * 0.6;
+    if (side) {
+      ctx.beginPath(); ctx.ellipse(gx + side * 5, gy, 5.6, 4.8, 0, 0, 6.3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(gx - side * 0.6, gy - 1); ctx.lineTo(head[0] - side * 9, gy - 2); ctx.stroke();
+    } else {
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.ellipse(gx + s * 7.5, gy, 5.6, 4.8, 0, 0, 6.3); ctx.stroke(); }
+      ctx.beginPath(); ctx.moveTo(gx - 1.9, gy - 0.5); ctx.quadraticCurveTo(gx, gy - 2.2, gx + 1.9, gy - 0.5); ctx.stroke();
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(gx + s * 13.1, gy - 1); ctx.lineTo(head[0] + s * 19.5, gy - 3); ctx.stroke(); }
+    }
+    ctx.restore();
   }
   const mx = head[0] + side * 7 + p.gaze[0] * 0.6, my = head[1] + 9 + p.gaze[1] * 0.5;
-  if (p.blush) { ctx.save(); ctx.globalAlpha = 0.45; ctx.fillStyle = C.pink; for (const [x] of eyePts) { ctx.beginPath(); ctx.ellipse(x + (side ? side * 2 : (x < head[0] ? -3 : 3)), head[1] + 5, 4.5, 2.6, 0, 0, 6.3); ctx.fill(); } ctx.restore(); }
+  if (p.blush) { ctx.save(); ctx.globalAlpha = 0.45; ctx.fillStyle = C.pink; for (const [x] of eyePts) { ctx.beginPath(); ctx.ellipse(x + (side ? side * 2 : (x < head[0] ? -3 : 3)), head[1] + 6, 4.5, 2.6, 0, 0, 6.3); ctx.fill(); } ctx.restore(); }
   const m = {lw: 1.9, amp: 0};
   if (p.mouth === 'smile') line(ctx, r, [[mx - 5, my - 1], [mx, my + 2.6], [mx + 5, my - 1]], m);
   else if (p.mouth === 'big') { ctx.beginPath(); ctx.moveTo(mx - 6, my - 1.5); ctx.quadraticCurveTo(mx, my + 8, mx + 6, my - 1.5); ctx.closePath(); ctx.fillStyle = C.ink; ctx.fill(); }
@@ -243,8 +269,8 @@ export function figure(ctx, r, who, hx, hy, pose = {}, opts = {}) {
 // Props reused by the cast
 export function backpack(ctx, r, x, y, s = 1) { // standing bag, bottom-left at (x,y)
   const w = 46 * s, h = 54 * s;
-  shape(ctx, r, [[x + 3 * s, y - h + 8 * s], [x + w / 2, y - h], [x + w - 3 * s, y - h + 8 * s], [x + w, y], [x, y]], {fill: C.navy, lw: 2.4, grain: 0.12});
-  rect(ctx, r, x + 8 * s, y - 24 * s, w - 16 * s, 16 * s, {fill: C.navyLight, lw: 1.8, grain: 0.08});
+  shape(ctx, r, [[x + 3 * s, y - h + 8 * s], [x + w / 2, y - h], [x + w - 3 * s, y - h + 8 * s], [x + w, y], [x, y]], {fill: WARDROBE.bag, lw: 2.4, grain: 0.12});
+  rect(ctx, r, x + 8 * s, y - 24 * s, w - 16 * s, 16 * s, {fill: WARDROBE.bagLight, lw: 1.8, grain: 0.08});
   line(ctx, r, [[x + w / 2 - 7 * s, y - h - 2 * s], [x + w / 2, y - h - 9 * s], [x + w / 2 + 7 * s, y - h - 2 * s]], {lw: 2, amp: 0.2});
 }
 export function ticket(ctx, r, x, y, s = 1, label = '21') {

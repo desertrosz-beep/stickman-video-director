@@ -3,6 +3,8 @@
 import {GlobalFonts} from './canvas.mjs';
 import {C, S, canvas, save, rng, shape, rect, ellipse, line, ellipsePts, paperGrain, handText, rain, glow, vgrad, pencil} from './lib.mjs';
 GlobalFonts.registerFromPath('/home/user/stickman-video-director/skills/directing-stickman-videos/assets/fonts/Caveat.ttf', 'Hand');
+GlobalFonts.registerFromPath('/home/user/stickman-video-director/skills/directing-stickman-videos/assets/fonts/NotoSans.ttf', 'Sign');
+const sign = (ctx, t, x, y, size, color = C.ink, align = 'center') => { ctx.save(); ctx.font = `600 ${size}px Sign`; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y); ctx.restore(); };
 const OUT = new URL('../assets/bg/', import.meta.url).pathname;
 const W = 1280, H = 720;
 
@@ -45,7 +47,10 @@ function tree(ctx, r, x, base, h, crown, {bare = false, blossom = false, alpha =
 function platform() {
   const {cv, ctx} = canvas(W, H), r = rng(101);
   vgrad(ctx, 0, 0, W, 380, [[0, '#aab7c2'], [0.55, '#d4cfc6'], [1, '#efcfae']]);
-  glow(ctx, 980, 330, 260, '#f6d2a6', 0.7);
+  glow(ctx, 900, 360, 520, '#f2a868', 0.75);
+  glow(ctx, 900, 350, 240, '#f8cf8f', 0.9);
+  ellipse(ctx, r, 900, 342, 40, 40, {fill: '#f7c983', stroke: null, grain: 0});
+  for (let i = 0; i < 5; i++) line(ctx, r, [[560 + i * 40, 300 + i * 12], [1240 - i * 30, 298 + i * 12]], {lw: 2, color: '#f6c690', alpha: 0.45});
   // distant city
   for (let i = 0; i < 16; i++) { const x = i * 84 - 20 + r() * 20, h = 50 + r() * 90; rect(ctx, r, x, 360 - h, 60 + r() * 30, h + 20, {fill: '#9aa6b0', lw: 1.4, grain: 0.05, alpha: 0.55, outlineAlpha: 0.4}); for (let k = 0; k < 4; k++) if (r() < 0.5) { ctx.fillStyle = 'rgba(246,214,150,.6)'; ctx.fillRect(x + 10 + r() * 40, 360 - h + 12 + r() * (h - 20), 6, 8); } }
   // back wall / fence
@@ -70,7 +75,7 @@ function platform() {
   // station sign + clock
   line(ctx, r, [[340, 70], [340, 112]], {lw: 2}); line(ctx, r, [[520, 70], [520, 112]], {lw: 2});
   rect(ctx, r, 310, 110, 240, 54, {fill: C.cream, lw: 2.4, grain: 0.06});
-  handText(ctx, 'Maple Road', 430, 137, {size: 36, align: 'center'});
+  sign(ctx, 'MAIN STREET', 430, 137, 26);
   line(ctx, r, [[840, 70], [840, 104]], {lw: 2});
   ellipse(ctx, r, 840, 140, 36, 36, {fill: C.white, lw: 2.6, grain: 0});
   for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; line(ctx, r, [[840 + Math.cos(a) * 29, 140 + Math.sin(a) * 29], [840 + Math.cos(a) * 32, 140 + Math.sin(a) * 32]], {lw: 1.6, amp: 0}); }
@@ -82,7 +87,14 @@ function platform() {
   line(ctx, r, [[1000, 72], [1000, 190]], {lw: 2.2}); shape(ctx, r, [[982, 190], [1018, 190], [1010, 214], [990, 214]], {fill: C.lamp, lw: 2, grain: 0});
   rect(ctx, r, 900, 520, 200, 14, {fill: C.wood, lw: 2, grain: 0.12}); rect(ctx, r, 900, 488, 200, 14, {fill: C.wood, lw: 2, grain: 0.12});
   line(ctx, r, [[915, 534], [912, 575]], {lw: 3}); line(ctx, r, [[1085, 534], [1088, 575]], {lw: 3});
-  rain(ctx, r, 0, 60, W, H, {n: 520, len: 22, alpha: 0.32});
+  // wet platform: smeared reflections of columns, lamp and dawn sky
+  for (const x of [150, 640, 1130]) { const g = ctx.createLinearGradient(0, 492, 0, 690); g.addColorStop(0, 'rgba(85,117,112,.55)'); g.addColorStop(1, 'rgba(85,117,112,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - 10, 492); for (let y = 492; y <= 690; y += 12) ctx.lineTo(x - 10 + Math.sin(y * 0.15) * 3, y); for (let y = 690; y >= 492; y -= 12) ctx.lineTo(x + 10 + Math.sin(y * 0.15 + 1) * 3, y); ctx.fill(); }
+  { const g = ctx.createLinearGradient(0, 492, 0, 700); g.addColorStop(0, 'rgba(248,210,140,.75)'); g.addColorStop(1, 'rgba(248,210,140,0)'); ctx.fillStyle = g; for (let k = 0; k < 4; k++) ctx.fillRect(990 + k * 6 - 6, 500 + k * 4, 4, 180 - k * 20); }
+  { const g = ctx.createLinearGradient(0, 492, 0, 640); g.addColorStop(0, 'rgba(246,190,128,.45)'); g.addColorStop(1, 'rgba(246,190,128,0)'); ctx.fillStyle = g; ctx.fillRect(700, 492, 420, 150); }
+  for (let i = 0; i < 26; i++) { const x = r() * W, y = 520 + r() * 190; line(ctx, r, [[x, y], [x + 30 + r() * 50, y]], {lw: 1.6, color: C.white, alpha: 0.7}); }
+  for (let i = 0; i < 60; i++) { const x = r() * W, y = 500 + r() * 210; ctx.save(); ctx.strokeStyle = 'rgba(110,130,145,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, y, 5 + r() * 6, 1.6 + r() * 1.5, 0, 0, 6.3); ctx.stroke(); ctx.restore(); }
+  rain(ctx, r, 0, 60, W, H, {n: 900, len: 26, alpha: 0.6, color: '#5f7486', lw: 1.5});
+  rain(ctx, r, 0, 60, W, H, {n: 260, len: 34, alpha: 0.55, color: '#f3efe6', lw: 1.3});
   paperGrain(ctx, r, W, H, 0.05);
   save(cv, OUT + 'bg1-platform.png');
 }
@@ -94,7 +106,7 @@ function localInterior() {
   paper(ctx, r, W, H, C.cream);
   rect(ctx, r, -10, -10, W + 20, 92, {fill: '#e6dcc2', lw: 2, grain: 0.08});
   // ad strip
-  for (const [x, c, t] of [[160, C.peach, 'tea 10'], [470, C.blueLight, 'city zoo'], [780, C.sage, 'books'], [1010, C.blossom, 'rain? umbrella!']]) { rect(ctx, r, x, 14, 200, 46, {fill: c, lw: 1.8, grain: 0.08, alpha: 0.85}); handText(ctx, t, x + 100, 38, {size: 24, align: 'center', color: C.ink}); }
+  for (const [x, c] of [[160, C.peach], [470, C.blueLight], [780, C.sage], [1010, C.blossom]]) { rect(ctx, r, x, 14, 200, 46, {fill: c, lw: 1.8, grain: 0.08, alpha: 0.85}); ellipse(ctx, r, x + 30, 37, 12, 12, {fill: C.cream, lw: 1.6, grain: 0}); for (let k = 0; k < 2; k++) line(ctx, r, [[x + 56, 30 + k * 14], [x + 170 - k * 40, 30 + k * 14]], {lw: 2, color: C.inkSoft}); }
   line(ctx, r, [[-10, 78], [W + 10, 78]], {lw: 4, color: '#9a9a90'});
   for (let x = 90; x < W; x += 120) { line(ctx, r, [[x, 78], [x, 96]], {lw: 2}); ellipse(ctx, r, x, 108, 11, 13, {lw: 3, color: C.ink, grain: 0}); }
   // lower wall panel
@@ -108,14 +120,14 @@ function localInterior() {
   line(ctx, r, [[365, 104], [365, 336]], {lw: 0.01, alpha: 0});
   // window sills
   rect(ctx, r, 112, 336, 506, 12, {fill: '#c9c1aa', lw: 1.8, grain: 0.05}); rect(ctx, r, 662, 336, 506, 12, {fill: '#c9c1aa', lw: 1.8, grain: 0.05});
-  // bench backrest + seat
-  rect(ctx, r, 60, 362, 1160, 106, {fill: C.teal, lw: 2.6, grain: 0.14});
-  for (const x of [330, 640, 950]) line(ctx, r, [[x, 366], [x, 464]], {lw: 1.6, color: C.tealDark});
-  rect(ctx, r, 48, 468, 1184, 34, {fill: '#82a8a2', lw: 2.6, grain: 0.12});
-  rect(ctx, r, 58, 502, 1164, 92, {fill: C.tealDark, lw: 2.4, grain: 0.16});
-  for (let x = 80; x < 1220; x += 58) line(ctx, r, [[x, 512], [x + 14, 584]], {lw: 1, color: C.ink, alpha: 0.25});
-  // seat number plates
-  for (const [x, n] of [[485, '20'], [795, '21']]) { rect(ctx, r, x - 26, 372, 52, 30, {fill: C.cream, lw: 1.8, grain: 0.04}); handText(ctx, n, x, 388, {size: 26, align: 'center', color: n === '21' ? C.rust : C.ink}); }
+  // bench backrest + seat (long commuter bench; seats 20 and 21 marked)
+  rect(ctx, r, 60, 362, 1160, 138, {fill: C.teal, lw: 2.6, grain: 0.14});
+  for (const x of [320, 480, 640, 800, 960]) line(ctx, r, [[x, 366], [x, 496]], {lw: 1.6, color: C.tealDark});
+  rect(ctx, r, 48, 500, 1184, 30, {fill: '#82a8a2', lw: 2.6, grain: 0.12});
+  rect(ctx, r, 58, 530, 1164, 64, {fill: C.tealDark, lw: 2.4, grain: 0.16});
+  for (let x = 80; x < 1220; x += 58) line(ctx, r, [[x, 538], [x + 10, 588]], {lw: 1, color: C.ink, alpha: 0.25});
+  // seat number plates, hung from the window frame directly above seats 20 and 21
+  for (const [x, n] of [[560, '20'], [720, '21']]) { line(ctx, r, [[x - 14, 98], [x - 14, 112]], {lw: 1.6}); line(ctx, r, [[x + 14, 98], [x + 14, 112]], {lw: 1.6}); rect(ctx, r, x - 28, 110, 56, 32, {fill: C.cream, lw: 2, grain: 0.04}); sign(ctx, n, x, 127, 19, n === '21' ? C.rustDark : C.ink); }
   // stanchions
   for (const x of [34, 1246]) rect(ctx, r, x - 7, 78, 14, 560, {fill: C.mustard, lw: 2, grain: 0.08});
   // floor
@@ -234,7 +246,7 @@ function room() {
   // envelope + opened letter on the desk
   shape(ctx, r, [[930, 376], [1010, 368], [1016, 378], [934, 384]], {fill: C.white, lw: 1.6, grain: 0.04});
   ctx.save(); ctx.translate(1000, 360); ctx.rotate(-0.08); rect(ctx, r, 0, 0, 90, 14, {fill: C.cream, lw: 1.6, grain: 0.03}); ctx.restore();
-  handText(ctx, 'TRANSFER ORDER', 1048, 338, {size: 20, align: 'center', color: C.rustDark, rotate: -0.06});
+  ctx.save(); ctx.translate(1048, 338); ctx.rotate(-0.06); sign(ctx, 'TRANSFER ORDER', 0, 0, 13, C.rustDark); ctx.restore();
   line(ctx, r, [[1010, 352], [1084, 346]], {lw: 1.2, color: C.rustDark, alpha: 0.6});
   // suitcase (centre-right floor), with a tag
   rect(ctx, r, 640, 420, 180, 130, {fill: C.rust, lw: 2.6, grain: 0.14});
@@ -267,7 +279,9 @@ function terminal() {
   line(ctx, r, [[640, 120], [640 + 26, 120 - 22]], {lw: 3.4, amp: 0}); line(ctx, r, [[640, 120], [640 - 12, 120 + 22]], {lw: 2.4, amp: 0});
   glow(ctx, 640, 120, 120, '#f6dfa8', 0.35);
   rect(ctx, r, 860, 170, 330, 150, {fill: '#24282f', lw: 2.6, grain: 0.06});
-  [['21:40', 'NORTHERN EXPRESS', '4'], ['21:55', 'COAST LINE', '7'], ['22:10', 'VALLEY LOCAL', '2']].forEach(([t, d, p], i) => { const y = 200 + i * 40; handText(ctx, t, 880, y, {size: 24, color: C.lamp}); handText(ctx, d, 950, y, {size: 22, color: '#f3ead2'}); handText(ctx, p, 1170, y, {size: 24, color: C.lamp, align: 'right'}); });
+  sign(ctx, 'DEPARTURES', 1025, 192, 18, C.lamp);
+  line(ctx, r, [[876, 208], [1174, 208]], {lw: 1.2, color: '#6b6f78'});
+  [['21:40', 'NORTH', '4'], ['21:55', 'COAST', '7'], ['22:10', 'VALLEY', '2']].forEach(([t, d, p], i) => { const y = 232 + i * 30; sign(ctx, t, 880, y, 17, C.lamp, 'left'); sign(ctx, d, 960, y, 17, '#f3ead2', 'left'); sign(ctx, p, 1172, y, 17, C.lamp, 'right'); });
   // hanging lamps
   for (const x of [180, 420, 860, 1100]) { line(ctx, r, [[x, 0], [x, 160 + (x % 3) * 10]], {lw: 1.6, color: '#9aa3b4'}); glow(ctx, x, 175, 90, '#f6d38c', 0.55); shape(ctx, r, [[x - 18, 160], [x + 18, 160], [x + 10, 180], [x - 10, 180]], {fill: C.lamp, lw: 1.8, grain: 0}); }
   // track band + platform (same staging grammar as the dawn platform)
@@ -279,13 +293,13 @@ function terminal() {
   for (let x = 0; x < W; x += 40) rect(ctx, r, x, 497, 22, 8, {fill: C.mustard, stroke: null, grain: 0});
   for (const x of [180, 420, 860, 1100]) glow(ctx, x, 600, 150, '#f6d38c', 0.18);
   rect(ctx, r, 40, 300, 18, 180, {fill: '#59627a', lw: 2, grain: 0.06}); rect(ctx, r, 1222, 300, 18, 180, {fill: '#59627a', lw: 2, grain: 0.06});
-  rect(ctx, r, 70, 520, 74, 34, {fill: C.cream, lw: 2, grain: 0.04}); handText(ctx, '4', 107, 538, {size: 30, align: 'center'});
+  rect(ctx, r, 70, 520, 74, 34, {fill: C.cream, lw: 2, grain: 0.04}); sign(ctx, '4', 107, 538, 22);
   paperGrain(ctx, r, W, H, 0.04);
   save(cv, OUT + 'bg6-terminal.png');
 }
 
 // ---------- 7. long-distance interior (two window seats) ----------
-export const LONG_WINDOW = rrPts(300, 112, 680, 236, 30);
+export const LONG_WINDOW = rrPts(300, 112, 680, 172, 30);
 function longInterior() {
   const {cv, ctx} = canvas(W, H), r = rng(707);
   paper(ctx, r, W, H, '#c9a27a');
@@ -297,20 +311,19 @@ function longInterior() {
   line(ctx, r, [[120, 92], [1160, 92]], {lw: 2.6, color: '#7f7b72'});
   rect(ctx, r, 360, 18, 150, 44, {fill: C.rust, lw: 2.2, grain: 0.12}); rect(ctx, r, 360, 34, 150, 8, {fill: C.rustDark, lw: 1.4, grain: 0.04});
   // window with curtains
-  shape(ctx, r, rrPts(284, 98, 712, 266, 38), {fill: '#8f7660', lw: 2.6, grain: 0.1});
+  shape(ctx, r, rrPts(284, 98, 712, 202, 38), {fill: '#8f7660', lw: 2.6, grain: 0.1});
   cut(ctx, LONG_WINDOW); line(ctx, r, [...LONG_WINDOW, LONG_WINDOW[0]], {lw: 2.6});
   line(ctx, r, [[640, 112], [640, 348]], {lw: 0.01, alpha: 0});
-  for (const [x, d] of [[250, 1], [1030, -1]]) shape(ctx, r, [[x, 92], [x + d * 70, 92], [x + d * 52, 230], [x + d * 70, 380], [x, 380], [x + d * 14, 230]], {fill: C.mustard, lw: 2.2, grain: 0.16});
-  rect(ctx, r, 280, 352, 720, 14, {fill: C.cream, lw: 2, grain: 0.04});
+  for (const [x, d] of [[250, 1], [1030, -1]]) shape(ctx, r, [[x, 92], [x + d * 70, 92], [x + d * 52, 200], [x + d * 70, 312], [x, 312], [x + d * 14, 200]], {fill: C.mustard, lw: 2.2, grain: 0.16});
+  rect(ctx, r, 280, 288, 720, 14, {fill: C.cream, lw: 2, grain: 0.04});
   // reading lamps
-  for (const x of [470, 810]) { glow(ctx, x, 130, 80, '#f6dca0', 0.4); }
   // two plush seats with headrest covers
   for (const [x, n] of [[480, '20'], [800, '21']]) {
-    shape(ctx, r, rrPts(x - 120, 330, 240, 200, 30), {fill: C.maroon, lw: 2.6, grain: 0.16});
-    rect(ctx, r, x - 70, 336, 140, 46, {fill: C.cream, lw: 2, grain: 0.04});
+    shape(ctx, r, rrPts(x - 120, 356, 240, 174, 30), {fill: C.maroon, lw: 2.6, grain: 0.16});
+    rect(ctx, r, x - 70, 362, 140, 42, {fill: C.cream, lw: 2, grain: 0.04});
     rect(ctx, r, x - 130, 500, 260, 44, {fill: C.maroonDark, lw: 2.4, grain: 0.14});
     rect(ctx, r, x - 120, 544, 240, 56, {fill: '#5a262d', lw: 2.2, grain: 0.14});
-    rect(ctx, r, x + 70, 300, 46, 26, {fill: '#f3ead2', lw: 1.6, grain: 0.03}); handText(ctx, n, x + 93, 313, {size: 22, align: 'center', color: n === '21' ? C.rust : C.ink});
+    rect(ctx, r, x - 24, 314, 48, 30, {fill: '#d7b46a', lw: 2, grain: 0.05}); rect(ctx, r, x - 19, 318, 38, 22, {fill: '#f3ead2', lw: 1.2, grain: 0}); sign(ctx, n, x, 330, 16, n === '21' ? C.rustDark : C.ink);
   }
   rect(ctx, r, 618, 470, 44, 74, {fill: C.maroonDark, lw: 2.2, grain: 0.1});
   // floor carpet
