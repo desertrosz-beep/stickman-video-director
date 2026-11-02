@@ -37,26 +37,32 @@ export function bagOnSeat(K) { // standing on the cushion; anchor = bottom centr
 
 // ---- local train exterior (moves along the platform tracks) ----
 export const TRAIN = {w: 2600, h: 330, door: 1240}; // design units; door centre in train-local x
-export function localTrain() {
-  const path = `${SP}local-train.png`;
+const PAL = {
+  local: {body: C.cream, lower: C.teal, stripe: C.mustard, win: '#c7d3d6', door: '#d9ddd4'},
+  long: {body: C.maroon, lower: C.maroonDark, stripe: C.cream, win: '#f2d9a0', door: '#b0646b'},
+};
+export const localTrain = () => trainSprite('local');
+export const longTrain = () => trainSprite('long');
+function trainSprite(kind) {
+  const pal = PAL[kind], path = `${SP}${kind}-train.png`;
   if (made.has(path)) return path;
   const {cv, ctx} = canvas(TRAIN.w, TRAIN.h, 1.5), r = rng(77);
   const top = 20, bot = 300;
   for (const [x0, x1] of [[0, 1290], [1310, 2600]]) {
     const nose = x0 === 0;
     const pts = nose ? [[x0 + 70, top], [x1, top], [x1, bot], [x0 + 6, bot], [x0, bot - 60], [x0 + 14, top + 60]] : [[x0, top], [x1, top], [x1, bot], [x0, bot]];
-    shape(ctx, r, pts, {fill: C.cream, lw: 2.8, grain: 0.1});
-    shape(ctx, r, nose ? [[x0 + 3, bot - 120], [x1, bot - 120], [x1, bot], [x0 + 6, bot], [x0, bot - 60]] : [[x0, bot - 120], [x1, bot - 120], [x1, bot], [x0, bot]], {fill: C.teal, lw: 2.4, grain: 0.14});
+    shape(ctx, r, pts, {fill: pal.body, lw: 2.8, grain: 0.1});
+    shape(ctx, r, nose ? [[x0 + 3, bot - 120], [x1, bot - 120], [x1, bot], [x0 + 6, bot], [x0, bot - 60]] : [[x0, bot - 120], [x1, bot - 120], [x1, bot], [x0, bot]], {fill: pal.lower, lw: 2.4, grain: 0.14});
     rect(ctx, r, x0 + (nose ? 60 : 0), top - 8, x1 - x0 - (nose ? 60 : 0), 14, {fill: '#9fa3a0', lw: 2, grain: 0.06});
-    line(ctx, r, [[x0 + 20, bot - 128], [x1, bot - 128]], {lw: 5, color: C.mustard});
+    line(ctx, r, [[x0 + 20, bot - 128], [x1, bot - 128]], {lw: 5, color: pal.stripe});
     for (let x = x0 + (nose ? 230 : 90); x < x1 - 120; x += 175) {
       if (Math.abs(x + 60 - TRAIN.door) < 150 || Math.abs(x + 60 - (TRAIN.door + 1310)) < 150) continue;
-      rect(ctx, r, x, top + 40, 120, 92, {fill: '#c7d3d6', lw: 2.2, grain: 0.04});
+      rect(ctx, r, x, top + 40, 120, 92, {fill: pal.win, lw: 2.2, grain: 0.04});
       ctx.save(); ctx.globalAlpha = 0.5; ctx.fillStyle = '#f2dfae'; ctx.fillRect(x + 6, top + 100, 108, 26); ctx.restore();
       line(ctx, r, [[x + 12, top + 50], [x + 40, top + 50]], {lw: 1.6, color: C.white, alpha: 0.8});
     }
     for (const d of [TRAIN.door, TRAIN.door + 1310]) if (d > x0 && d < x1) {
-      rect(ctx, r, d - 70, top + 26, 140, bot - top - 32, {fill: '#d9ddd4', lw: 2.4, grain: 0.06});
+      rect(ctx, r, d - 70, top + 26, 140, bot - top - 32, {fill: pal.door, lw: 2.4, grain: 0.06});
       line(ctx, r, [[d, top + 28], [d, bot - 8]], {lw: 2.2});
       for (const s of [-1, 1]) rect(ctx, r, d + (s < 0 ? -58 : 12), top + 46, 46, 70, {fill: '#c7d3d6', lw: 1.8, grain: 0.04});
     }
@@ -119,5 +125,21 @@ export function titleCard() { // hand-drawn paper tag with the film title
     line(ctx, r, [[140, 104], [300, 102]], {lw: 2, color: C.rust});
     save(cv, ROOT + path); made.set(path, true);
   }
+  return path;
+}
+export function endCard() {
+  const path = `${SP}end-card.png`;
+  if (!made.has(path)) {
+    const {cv, ctx} = canvas(700, 190, 3), r = rng(2160);
+    shape(ctx, r, [[16, 20], [688, 10], [692, 176], [10, 182]], {fill: 'rgba(244,240,229,.95)', lw: 2.4, grain: 0.05});
+    handText(ctx, 'Who would you save a seat for?', 350, 92, {size: 58, align: 'center'});
+    line(ctx, r, [[250, 138], [450, 135]], {lw: 2.2, color: C.rust});
+    save(cv, ROOT + path); made.set(path, true);
+  }
+  return path;
+}
+export function letterOnCase() {
+  const path = `${SP}letter-on-case.png`;
+  if (!made.has(path)) { const {cv, ctx} = canvas(90, 40, 3), r = rng(880); shape(ctx, r, [[6, 26], [70, 14], [84, 24], [20, 36]], {fill: C.white, lw: 1.8, grain: 0.04}); for (let i = 0; i < 3; i++) line(ctx, r, [[22 + i * 4, 28 - i * 3], [62 + i * 4, 20 - i * 3]], {lw: 1, color: C.inkSoft}); save(cv, ROOT + path); made.set(path, true); }
   return path;
 }
